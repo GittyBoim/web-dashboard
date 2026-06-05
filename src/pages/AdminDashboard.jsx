@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { companyAPI, adminAPI } from '../services/api';
 
+// Date formatter utility
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString();
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const [companies, setCompanies] = useState([]);
@@ -29,6 +41,10 @@ const AdminDashboard = () => {
     password: '',
     phone: '',
   });
+
+  // View company users modal
+  const [showCompanyUsersModal, setShowCompanyUsersModal] = useState(false);
+  const [selectedCompanyForUsers, setSelectedCompanyForUsers] = useState(null);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -127,16 +143,27 @@ const AdminDashboard = () => {
             <p>Email: {company.email || 'N/A'}</p>
             <p>Phone: {company.phone || 'N/A'}</p>
             <p>Users: {company.users?.length || 0}</p>
-            <p>Created: {new Date(company.createdAt).toLocaleDateString()}</p>
-            <button
-              onClick={() => {
-                setSelectedCompanyId(company.id);
-                setShowCreateCompanyUserModal(true);
-              }}
-              className="btn-secondary btn-small"
-            >
-              Add User to Company
-            </button>
+            <p>Created: {formatDate(company.createdAt)}</p>
+            <div className="button-group">
+              <button
+                onClick={() => {
+                  setSelectedCompanyId(company.id);
+                  setShowCreateCompanyUserModal(true);
+                }}
+                className="btn-secondary btn-small"
+              >
+                Add User to Company
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedCompanyForUsers(company);
+                  setShowCompanyUsersModal(true);
+                }}
+                className="btn-secondary btn-small"
+              >
+                View Users
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -154,7 +181,7 @@ const AdminDashboard = () => {
             <p>Role: <span className={`role-badge role-${user.role}`}>{user.role}</span></p>
             <p>Phone: {user.phone || 'N/A'}</p>
             {user.companyId && <p>Company ID: {user.companyId}</p>}
-            <p>Created: {new Date(user.createdAt).toLocaleDateString()}</p>
+            <p>Created: {formatDate(user.createdAt)}</p>
           </div>
         ))}
       </div>
@@ -240,72 +267,74 @@ const AdminDashboard = () => {
                 ×
               </button>
             </div>
-            <form onSubmit={handleCreateCompany}>
-              <div className="form-group">
-                <label htmlFor="name">Company Name *</label>
-                <input
-                  type="text"
-                  id="name"
-                  value={companyFormData.name}
-                  onChange={(e) => setCompanyFormData({ ...companyFormData, name: e.target.value })}
-                  required
-                />
-              </div>
+            <div className="modal-content"> 
+              <form onSubmit={handleCreateCompany}>
+                <div className="form-group">
+                  <label htmlFor="name">Company Name *</label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={companyFormData.name}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, name: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="type">Company Type</label>
-                <select
-                  id="type"
-                  value={companyFormData.type}
-                  onChange={(e) => setCompanyFormData({ ...companyFormData, type: e.target.value })}
-                >
-                  <option value="BUSINESS">Business</option>
-                  <option value="NON_PROFIT">Non-Profit</option>
-                  <option value="GOVERNMENT">Government</option>
-                </select>
-              </div>
+                <div className="form-group">
+                  <label htmlFor="type">Company Type</label>
+                  <select
+                    id="type"
+                    value={companyFormData.type}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, type: e.target.value })}
+                  >
+                    <option value="BUSINESS">Business</option>
+                    <option value="NON_PROFIT">Non-Profit</option>
+                    <option value="GOVERNMENT">Government</option>
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  value={companyFormData.email}
-                  onChange={(e) => setCompanyFormData({ ...companyFormData, email: e.target.value })}
-                />
-              </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={companyFormData.email}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, email: e.target.value })}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="phone">Phone</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={companyFormData.phone}
-                  onChange={(e) => setCompanyFormData({ ...companyFormData, phone: e.target.value })}
-                />
-              </div>
+                <div className="form-group">
+                  <label htmlFor="phone">Phone</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    value={companyFormData.phone}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, phone: e.target.value })}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="address">Address</label>
-                <input
-                  type="text"
-                  id="address"
-                  value={companyFormData.address}
-                  onChange={(e) => setCompanyFormData({ ...companyFormData, address: e.target.value })}
-                />
-              </div>
+                <div className="form-group">
+                  <label htmlFor="address">Address</label>
+                  <input
+                    type="text"
+                    id="address"
+                    value={companyFormData.address}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, address: e.target.value })}
+                  />
+                </div>
 
-              <div className="form-actions">
-                <button type="submit" className="btn-primary">Create Company</button>
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setShowCreateCompanyModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <div className="form-actions">
+                  <button type="submit" className="btn-primary">Create Company</button>
+                  <button 
+                    type="button" 
+                    className="btn-secondary"
+                    onClick={() => setShowCreateCompanyModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -323,14 +352,15 @@ const AdminDashboard = () => {
                 ×
               </button>
             </div>
-            <form onSubmit={handleCreateCompanyUser}>
-              <div className="form-group">
-                <label htmlFor="company">Company *</label>
-                <select
-                  id="company"
-                  value={selectedCompanyId}
-                  onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  required
+            <form onSubmit={handleCreateCompanyUser} className="modal-form">
+              <div className="modal-content">
+                <div className="form-group">
+                  <label htmlFor="company">Company *</label>
+                  <select
+                    id="company"
+                    value={selectedCompanyId}
+                    onChange={(e) => setSelectedCompanyId(e.target.value)}
+                    required
                 >
                   <option value="">Select a company</option>
                   {companies.map((company) => (
@@ -383,8 +413,9 @@ const AdminDashboard = () => {
                   onChange={(e) => setCompanyUserFormData({ ...companyUserFormData, phone: e.target.value })}
                 />
               </div>
+              </div>
 
-              <div className="form-actions">
+              <div className="modal-actions">
                 <button type="submit" className="btn-primary">Create User</button>
                 <button 
                   type="button" 
@@ -395,6 +426,51 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Company Users Modal */}
+      {showCompanyUsersModal && selectedCompanyForUsers && (
+        <div className="modal-overlay">
+          <div className="modal modal-large">
+            <div className="modal-header">
+              <h2>Users - {selectedCompanyForUsers.name}</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowCompanyUsersModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              {selectedCompanyForUsers.users && selectedCompanyForUsers.users.length > 0 ? (
+                <div className="users-list">
+                  {selectedCompanyForUsers.users.map((user) => (
+                    <div key={user.id} className="user-item">
+                      <div className="user-info">
+                        <h4>{user.name}</h4>
+                        <p>Email: {user.email}</p>
+                        <p>Phone: {user.phone || 'N/A'}</p>
+                        {user.role && <p>Role: <span className={`role-badge role-${user.role}`}>{user.role}</span></p>}
+                        <p className="created-date">Created: {formatDate(user.createdAt)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="no-users">No users found for this company.</p>
+              )}
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="btn-secondary"
+                  onClick={() => setShowCompanyUsersModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

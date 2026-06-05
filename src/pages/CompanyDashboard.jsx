@@ -137,13 +137,31 @@ const CompanyDashboard = () => {
 
         {company && (
           <div className="company-info">
-            <h2>{company.name}</h2>
+            <div className="company-header">
+              <div className="company-header-content">
+                <h2>{company.name}</h2>
+                <span className="company-type-badge">{company.type}</span>
+              </div>
+            </div>
             <div className="company-details">
-              <p><strong>Type:</strong> {company.type}</p>
-              <p><strong>Email:</strong> {company.email || 'N/A'}</p>
-              <p><strong>Phone:</strong> {company.phone || 'N/A'}</p>
-              <p><strong>Address:</strong> {company.address || 'N/A'}</p>
-              <p><strong>Company Users:</strong> {company.users?.length || 0}</p>
+              <div className="details-grid">
+                <div className="detail-item">
+                  <span className="detail-label">Email</span>
+                  <span className="detail-value">{company.email || 'Not provided'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Phone</span>
+                  <span className="detail-value">{company.phone || 'Not provided'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Address</span>
+                  <span className="detail-value">{company.address || 'Not provided'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Team Members</span>
+                  <span className="detail-value detail-count">{company.users?.length || 0}</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -169,35 +187,37 @@ const CompanyDashboard = () => {
                   ×
                 </button>
               </div>
-              <form onSubmit={handleCreateItem}>
-                <div className="form-group">
-                  <label htmlFor="name">Item Name (Optional)</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Laptop, Printer, Key..."
-                  />
-                </div>
+              <div className="modal-content">
+                <form onSubmit={handleCreateItem}>
+                  <div className="form-group">
+                    <label htmlFor="name">Item Name (Optional)</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Laptop, Printer, Key..."
+                    />
+                  </div>
 
-                <div className="form-group">
-                  <label htmlFor="description">Description (Optional)</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Enter item description..."
-                  />
-                </div>
+                  <div className="form-group">
+                    <label htmlFor="description">Description (Optional)</label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="Enter item description..."
+                    />
+                  </div>
 
-                <div className="form-actions">
-                  <button type="submit">Create Item</button>
-                  <button type="button" onClick={() => setShowCreateForm(false)}>Cancel</button>
-                </div>
-              </form>
+                  <div className="form-actions">
+                    <button type="submit">Create Item</button>
+                    <button type="button" onClick={() => setShowCreateForm(false)}>Cancel</button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
@@ -214,26 +234,28 @@ const CompanyDashboard = () => {
                   ×
                 </button>
               </div>
-              <form onSubmit={handleBulkCreate}>
-                <div className="form-group">
-                  <label htmlFor="count">Number of Items</label>
-                  <input
-                    type="number"
-                    id="count"
-                    min="1"
-                    max="100"
-                    value={bulkCount}
-                    onChange={(e) => setBulkCount(parseInt(e.target.value))}
-                    required
-                  />
-                  <p className="help-text">Maximum 100 items per batch</p>
-                </div>
+              <div className="modal-content">
+                <form onSubmit={handleBulkCreate}>
+                  <div className="form-group">
+                    <label htmlFor="count">Number of Items</label>
+                    <input
+                      type="number"
+                      id="count"
+                      min="1"
+                      max="100"
+                      value={bulkCount}
+                      onChange={(e) => setBulkCount(parseInt(e.target.value))}
+                      required
+                    />
+                    <p className="help-text">Maximum 100 items per batch</p>
+                  </div>
 
-                <div className="form-actions">
-                  <button type="submit">Create {bulkCount} Items</button>
-                  <button type="button" onClick={() => setShowBulkForm(false)}>Cancel</button>
-                </div>
-              </form>
+                  <div className="form-actions">
+                    <button type="submit">Create {bulkCount} Items</button>
+                    <button type="button" onClick={() => setShowBulkForm(false)}>Cancel</button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
