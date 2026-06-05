@@ -11,6 +11,8 @@ const CompanyDashboard = () => {
   const [showBulkForm, setShowBulkForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [bulkCount, setBulkCount] = useState(1);
+  const [bulkName, setBulkName] = useState('');
+  const [bulkDescription, setBulkDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -96,9 +98,13 @@ const CompanyDashboard = () => {
       const result = await itemsAPI.createBulkItems({
         companyId: user.companyId,
         count: bulkCount,
+        name: bulkName,
+        description: bulkDescription,
       });
       setSuccess(`${bulkCount} items created successfully!`);
       setBulkCount(1);
+      setBulkName('');
+      setBulkDescription('');
       setShowBulkForm(false);
       loadData();
     } catch (error) {
@@ -236,6 +242,27 @@ const CompanyDashboard = () => {
               </div>
               <div className="modal-content">
                 <form onSubmit={handleBulkCreate}>
+                  <div className="form-group">
+                    <label htmlFor="bulk-name">Item Name (Optional)</label>
+                    <input
+                      type="text"
+                      id="bulk-name"
+                      value={bulkName}
+                      onChange={(e) => setBulkName(e.target.value)}
+                      placeholder="e.g., Laptop, Printer, Key..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="bulk-description">Description (Optional)</label>
+                    <textarea
+                      id="bulk-description"
+                      value={bulkDescription}
+                      onChange={(e) => setBulkDescription(e.target.value)}
+                      placeholder="Enter item description..."
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label htmlFor="count">Number of Items</label>
                     <input
