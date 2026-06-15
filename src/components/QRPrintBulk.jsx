@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCode } from 'qrcode.react';
 
 const QRPrintBulk = ({ items, onClose }) => {
   const qrRef = useRef();
