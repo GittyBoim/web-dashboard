@@ -48,6 +48,11 @@ export const itemsAPI = {
   getCompanyItems: (companyId) => api.get(`/items/company/${companyId}`),
   getItemBySerial: (serial) => api.get(`/items/${serial}`),
   assignItem: (data) => api.post('/items/assign', data),
+  // QR Code endpoints
+  getQRCode: (itemId) => api.get(`/items/${itemId}/qr`),
+  generateBulkQR: (itemIds) => api.post('/items/qr/bulk', { itemIds }),
+  downloadQRLabel: (itemId) => api.get(`/items/${itemId}/qr/download`, { responseType: 'blob' }),
+  downloadBulkQRLabels: (itemIds) => api.post('/items/qr/bulk/download', { itemIds }, { responseType: 'blob' }),
 };
 
 export const companyAPI = {

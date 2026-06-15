@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { itemsAPI, companyAPI } from '../services/api';
+import QRPrintSingle from '../components/QRPrintSingle';
+import QRPrintBulk from '../components/QRPrintBulk';
 
 const CompanyDashboard = () => {
   const { user, logout } = useAuth();
@@ -15,6 +17,13 @@ const CompanyDashboard = () => {
   const [bulkDescription, setBulkDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // QR Print states
+  const [showQRPrintSingle, setShowQRPrintSingle] = useState(false);
+  const [showQRPrintBulk, setShowQRPrintBulk] = useState(false);
+  const [selectedItemForPrint, setSelectedItemForPrint] = useState(null);
+  const [selectedItemsForBulkPrint, setSelectedItemsForBulkPrint] = useState([]);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -117,6 +126,48 @@ const CompanyDashboard = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // QR Print handlers
+  const handlePrintSingle = (item) => {
+    setSelectedItemForPrint(item);
+    setShowQRPrintSingle(true);
+  };
+
+  const handleToggleItemSelection = (itemId) => {
+    setSelectedItemsForBulkPrint((prev) => {
+      if (prev.includes(itemId)) {
+        return prev.filter((id) => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItemsForBulkPrint.length === items.length) {
+      setSelectedItemsForBulkPrint([]);
+    } else {
+      setSelectedItemsForBulkPrint(items.map((item) => item.id));
+    }
+  };
+
+  const handlePrintBulk = () => {
+    const itemsToPrint = items.filter((item) =>
+      selectedItemsForBulkPrint.includes(item.id)
+    );
+    if (itemsToPrint.length > 0) {
+      setSelectedItemForPrint(null);
+      setShowQRPrintBulk(true);
+    } else {
+      setError('Please select at least one item to print');
+    }
+  };
+
+  const getSelectedItemsForBulk = () => {
+    return items.filter((item) =>
+      selectedItemsForBulkPrint.includes(item.id)
+    );
   };
 
   if (loading) {
@@ -288,23 +339,94 @@ const CompanyDashboard = () => {
         )}
 
         <div className="items-section">
-          <h2>Your Items</h2>
+          <div className="items-section-header">
+            <h2>Your Items ({items.length})</h2>
+            {items.length > 0 && (
+              <div className="items-controls">
+                <button
+                  onClick={() => setSelectionMode(!selectionMode)}
+                  className="btn-control"
+                >
+                  {selectionMode ? '✕ Cancel Selection' : '☑ Select Items'}
+                </button>
+                {selectionMode && selectedItemsForBulkPrint.length > 0 && (
+                  <>
+                    <button
+                      onClick={handleSelectAll}
+                      className="btn-control"
+                    >
+                      {selectedItemsForBulkPrint.length === items.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                    <button
+                      onClick={handlePrintBulk}
+                      className="btn-control btn-print-bulk"
+                    >
+                      🖨️ Print {selectedItemsForBulkPrint.length}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           {items.length === 0 ? (
             <p className="empty-state">No items created yet. Create your first QR code item!</p>
           ) : (
             <div className="items-grid">
               {items.map((item) => (
                 <div key={item.id} className="item-card">
+                  {selectionMode && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <input
+                        type="checkbox"
+                        id={`item-${item.id}`}
+                        checked={selectedItemsForBulkPrint.includes(item.id)}
+                        onChange={() => handleToggleItemSelection(item.id)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </div>
+                  )}
                   <h3>{item.name || 'Unnamed Item'}</h3>
                   <p><strong>Serial:</strong> {item.serialNumber}</p>
                   <p><strong>Status:</strong> {item.status}</p>
                   <p><strong>Created:</strong> {new Date(item.createdAt).toLocaleDateString()}</p>
+                  {!selectionMode && (
+                    <div className="item-card-actions">
+                      <button
+                        onClick={() => handlePrintSingle(item)}
+                        className="print-btn"
+                      >
+                        🖨️ Print QR
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </div>
       </main>
+
+      {/* QR Print Modals */}
+      {showQRPrintSingle && selectedItemForPrint && (
+        <QRPrintSingle
+          item={selectedItemForPrint}
+          onClose={() => {
+            setShowQRPrintSingle(false);
+            setSelectedItemForPrint(null);
+          }}
+        />
+      )}
+
+      {showQRPrintBulk && getSelectedItemsForBulk().length > 0 && (
+        <QRPrintBulk
+          items={getSelectedItemsForBulk()}
+          onClose={() => {
+            setShowQRPrintBulk(false);
+            setSelectionMode(false);
+            setSelectedItemsForBulkPrint([]);
+          }}
+        />
+      )}
     </div>
   );
 };
